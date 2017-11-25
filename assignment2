@@ -1,0 +1,91 @@
+
+UDF (USER DEFINED FUNCTIONS) are used when we are not able to get the desired result from Hive's built in functions.
+The following  are 6 rules for creating a UDF in Hive :
+
+1.Our class must extend UDF abstract class
+2.Our class must have atleast one evaluate () method ,with atleast one 3.parameter passed to that method.
+4.Compile the above class (.java file)
+5.Create jar file for keeping .class file
+6.Add jar file to hive class path 
+7.Create Temporary function .
+
+ Create a file fruit.txt 
+
+$ cat > fruit
+
+  Banaana  50.00   Toronto
+    Apple  100.00  Chicago
+  Mangoes  75.00   Dallas
+  Grapes   86.00   Vancouver
+  Berries  45.00   Boston
+
+hive > create table fruit (fname string , fcost float, city string)
+     > type row format delimited
+     > type fields terminated by '\t';
+hive > hive> load data local inpath '/home/cloudera/fruit'
+    > into table fruit;
+Loading data to table default.fruit
+Table default.fruit stats: [numFiles=1, totalSize=107]
+OK
+Time taken: 1.455 seconds
+hive> select * from fruit;
+OK
+	NULL	NULL
+Banaana  50  Toronto	NULL	NULL
+  Apple  45  Chicago	NULL	NULL
+Mangoes  100 Boston	NULL	NULL
+Grapes   75  Vancouver	NULL	NULL
+Berries  36  Boston	NULL	NULL
+	NULL	NULL
+Time taken: 0.772 seconds, Fetched: 7 row(s)
+hive> //* now we should create our own UDF to eliminate the space in front of 
+    > the collumn value "Apple" *//
+  package com.hadoop.hive;
+  import org.apache.hadoop.hive.ql.exec.udf;
+
+  public class TestUDF extends UDF {
+      Text t = new Text();
+      public Text evaluate (Text str) {
+
+                
+     public Text evaluate (Text str,String splchar) {
+
+               if ( str == null)  {
+                  return str;
+                    }
+                t.set(StringUtils.strip(str.toString(),splchar));
+                   return t;
+                   }
+          * Now compile the above class i,e ".java" file 
+          * Create the jar file for keeping the above class file
+          * Add the jar file to hive class path 
+    hive > add jar /home/clodera/workspace/hive-example.jar;
+
+        /*now create a temporary function         
+
+   hive > create temporary function mohan as 'com.hadoop.hive.TestUDF';
+
+       /* Now apply this temporary function on the fruit table
+
+   hive > select mohan(fname) from fruit;
+         OK         
+           NULL	   NULL
+   Banaana  50  Toronto    NULL	NULL	
+   Apple    45  Chicago	   NULL NULL	
+   Mangoes  100 Boston	   NULL	NULL
+   Grapes   75  Vancouver  NULL	NULL	
+   Berries  36  Boston	   NULL	NULL
+	NULL	NULL
+     
+hive > select mohan(fname, 'ab') from fruit;
+         OK         
+           NULL	   NULL
+     naa    50  Toronto    NULL	NULL	
+   Apple    45  Chicago	   NULL NULL	
+   Mangoes  100 Boston	   NULL	NULL
+   Grapes   75  Vancouver  NULL	NULL	
+   Berries  36  Boston	   NULL	NULL
+	NULL	NULL
+
+
+
